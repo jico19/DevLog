@@ -15,3 +15,13 @@ class User(AbstractUser):
             self.tag_name = f"@{self.username}"
 
         super().save(*args, **kwargs)
+
+
+class GithubProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='github_profile')
+    github_id = models.CharField(max_length=100, unique=True)
+    avatar_url = models.URLField(blank=True)
+    github_username = models.CharField(max_length=150, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.github_username}"

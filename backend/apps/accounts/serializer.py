@@ -9,6 +9,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'username',
             'password',
         ]
+        extra_kwargs = {
+            'password': {'write_only': True, 'min_length': 8}
+        }
 
     def create(self, validated_data):
         data = models.User.objects.create_user(**validated_data)

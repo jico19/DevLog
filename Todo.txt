@@ -3,3 +3,9 @@
 - set up env 
 - set up viewsets
 - set up serializers
+
+# Goal today 04/02/26
+- make simple page
+- add Oauth Github
+- add error handling
+- add business layer
