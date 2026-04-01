@@ -1,0 +1,5 @@
+# Goal today 04/01/26
+- make models
+- set up env 
+- set up viewsets
+- set up serializers
