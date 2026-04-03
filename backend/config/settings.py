@@ -131,6 +131,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+# # MEDIA\
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+
 # JWT CONF
 from datetime import timedelta
 
@@ -148,6 +155,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": False,
     
     "UPDATE_LAST_LOGIN": False,
+    "TOKEN_OBTAIN_SERIALIZER": "apps.accounts.serializer.CustomTokenObtainPairSerializer",
 }
 
 # CORS CONF

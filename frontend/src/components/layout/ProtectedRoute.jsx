@@ -1,11 +1,28 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "src/context/AuthContext";
+import { useEffect } from "react";
 
 const ProtectedRoute = () => {
-    const access_token = localStorage.getItem('access_token')
+    const navigate = useNavigate();
 
-    if (!access_token) return <Navigate to='/' replace/>
+    const access_token = localStorage.getItem("access");
+    const user = useAuth((s) => s.user);
 
-    return <Outlet />
-}
+    const isAuthenticated = user?.isAuthenticated && access_token;
 
-export default ProtectedRoute
+    useEffect(() => {
+        // Auto-detect logout (token removed OR user cleared)
+        if (!access_token || !user?.isAuthenticated) {
+            navigate("/", { replace: true });
+        }
+    }, [access_token, user, navigate]);
+
+    // Prevent flicker / unsafe render
+    if (!isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
+
+    return <Outlet />;
+};
+
+export default ProtectedRoute;

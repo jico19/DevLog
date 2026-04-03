@@ -1,5 +1,9 @@
+
+
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID
 const CALLBACK_URL = 'http://localhost:5173/auth/callback'
+
+import { GitBranchIcon } from "lucide-react"
 
 export default function GithubLoginButton() {
     const handleLogin = () => {
@@ -8,7 +12,10 @@ export default function GithubLoginButton() {
     }
 
     return (
-        <button onClick={handleLogin}>
+        <button
+            onClick={handleLogin}
+            className="text-white bg-green-500"
+        >
             Login with GitHub
         </button>
     )

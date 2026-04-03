@@ -1,11 +1,15 @@
 // pages/AuthCallback.jsx
+import { jwtDecode } from 'jwt-decode'
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import { useAuth } from 'src/context/AuthContext'
+import api from 'src/utils/api'
 
 export default function AuthCallback() {
     const navigate = useNavigate()
     const called = useRef(false)  // guard against double call
+    const login = useAuth((s) => s.login)
+
 
     useEffect(() => {
         if (called.current) return  // stop the second Strict Mode call
@@ -19,13 +23,18 @@ export default function AuthCallback() {
             return
         }
 
-        axios.post('http://127.0.0.1:8000/user/github_login/', { code })
+        api.post('/user/github_login/', { code })
             .then(res => {
                 const { access, refresh, user } = res.data
-                localStorage.setItem('access_token', access)
-                localStorage.setItem('refresh_token', refresh)
+                localStorage.setItem('access', access)
+                localStorage.setItem('refresh', refresh)
                 localStorage.setItem('user', JSON.stringify(user))
-                navigate('/dashboard')
+                
+                login({
+                    user_id: Number(jwtDecode(access).user_id),
+                    username: jwtDecode(access).username
+                })
+                navigate('/feed')
             })
             .catch(() => {
                 navigate('/')

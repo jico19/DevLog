@@ -1,11 +1,13 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from . import models
 from . import serializer
 import requests
+
+
+
 
 class UserViewSets(viewsets.ModelViewSet):
     queryset = models.User.objects.all()
@@ -63,7 +65,6 @@ class UserViewSets(viewsets.ModelViewSet):
 
         github_id = str(github_user.get('id'))
         github_username = github_user.get('login')
-        print(github_username)
         avatar_url = github_user.get('avatar_url', '')
         email = github_user.get('email', '')
 
@@ -93,7 +94,7 @@ class UserViewSets(viewsets.ModelViewSet):
             )
 
         # Step 4 — generate JWT and return to React
-        refresh = RefreshToken.for_user(user)
+        refresh = serializer.CustomTokenObtainPairSerializer.get_token(user)
 
         return Response({
             'access': str(refresh.access_token),
