@@ -8,6 +8,12 @@ import RegisterPage from './pages/RegisterPage'
 import PostCardEdit from './components/ui/PostCardEdit'
 import UserLayout from './components/layout/UserLayout'
 import ProfilePage from './pages/ProfilePage'
+import CreateEntry from './components/ui/CreateEntry'
+import CreateProject from './components/ui/CreteProject'
+import EntryDeatiledView from './components/ui/EntryDeatiledView'
+import TrendingPage from './pages/TrendingPage'
+import DevsPage from './pages/DevsPage'
+
 
 export default function App() {
   return (
@@ -31,7 +37,37 @@ export default function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<UserLayout />}>
+            <Route path='/project/create' element={<CreateProject />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<UserLayout />}>
+            <Route path='/entry/create' element={<CreateEntry />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<UserLayout />}>
+            <Route path='/entry/detailed/:id' element={<EntryDeatiledView />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<UserLayout />}>
             <Route path='/entry/:id' element={<PostCardEdit />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<UserLayout />}>
+            <Route path='/entry/trending' element={<TrendingPage />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<UserLayout />}>
+            <Route path='/devs' element={<DevsPage />} />
           </Route>
         </Route>
 

@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react"
 
 
 
-export default function ResponsiveImage({ src, widths, sizes, alt, className }) {
+export default function ResponsiveImage({ src, alt, className }) {
     const [loaded, setLoaded] = useState(false)
     const [inView, setInView] = useState(false)
     const ref = useRef(null)

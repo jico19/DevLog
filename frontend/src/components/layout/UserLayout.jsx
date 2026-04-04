@@ -8,9 +8,12 @@ import {
     Users,
     Compass,
     Menu,
+    LogOut,
 } from "lucide-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "src/context/AuthContext";
+
+
 
 const UserLayout = () => {
     const [activeSidebar, setActiveSidebar] = useState("feed");
@@ -29,7 +32,7 @@ const UserLayout = () => {
                     onClick={() => setSidebarOpen(true)}
                     className="md:hidden p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
-                    <Menu size={20} className="text-zinc-300"/>
+                    <Menu size={20} className="text-zinc-300" />
                 </button>
 
                 <h1 className="text-zinc-300 text-lg md:text-2xl">// devlog</h1>
@@ -65,10 +68,9 @@ const UserLayout = () => {
                     <span className="text-[10px] text-zinc-400 px-3 py-2">// main</span>
 
                     {[
-                        { name: "feed", icon: Home,  onClick: () => navigate('/feed')},
-                        { name: "entries", icon: FileText,  onClick: () => navigate(`/profile/${user.user_id}`)},
-                        { name: "profile", icon: User,  onClick: () =>  navigate(`/profile/${user.user_id}`)},
-                    ].map(({ name, icon: Icon, onClick}) => (
+                        { name: "feed", icon: Home, onClick: () => navigate('/feed') },
+                        { name: "profile", icon: User, onClick: () => navigate(`/profile/${user.user_id}`) },
+                    ].map(({ name, icon: Icon, onClick }) => (
                         <button
                             key={name}
                             onClick={() => {
@@ -92,8 +94,8 @@ const UserLayout = () => {
                     <span className="text-[10px] text-zinc-400 px-3 py-2">// discover</span>
 
                     {[
-                        { name: "trending", icon: Flame, onClick: () => console.log('tite')},
-                        { name: "devs", icon: Users, onClick: () => console.log('tite')},
+                        { name: "trending", icon: Flame, onClick: () => navigate('/entry/trending') },
+                        { name: "devs", icon: Users, onClick: () => navigate('/devs') },
                     ].map(({ name, icon: Icon, onClick, }) => (
                         <button
                             key={name}
@@ -115,20 +117,40 @@ const UserLayout = () => {
 
                     <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-3" />
 
-                    <div className="mt-auto border-t border-zinc-200 dark:border-zinc-800 pt-2">
-                        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800" onClick={() => logout()}>
-                            <div className="w-8 h-8 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center text-[10px]">
-                                {user.username.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="text-left">
-                                <div className="text-xs font-medium text-zinc-900 dark:text-white">
-                                    {user.username}
+                    <div className="mt-auto p-3 border-t border-zinc-200 dark:border-zinc-800">
+                        <div className="flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors group">
+
+                            {/* Avatar & Info */}
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                {/* Elevated Avatar */}
+                                <div className="w-9 h-9 shrink-0 rounded-full bg-gradient-to-tr from-zinc-800 to-zinc-600 dark:from-zinc-100 dark:to-zinc-300 text-white dark:text-zinc-900 flex items-center justify-center text-xs font-bold shadow-sm border border-zinc-200 dark:border-zinc-700">
+                                    {user.username.slice(0, 2).toUpperCase()}
                                 </div>
-                                <div className="text-[10px] text-zinc-400">
-                                    @{user.username}
+
+                                {/* Text with truncation */}
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
+                                        {user.username}
+                                    </span>
+                                    <span className="text-xs text-zinc-500 truncate">
+                                        @{user.username}
+                                    </span>
                                 </div>
                             </div>
-                        </button>
+
+                            {/* Subtle Logout Action */}
+                            <button
+                                title="Log out"
+                                className="p-2 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                                onClick={() => {
+                                    logout()
+
+                                    navigate('/', { replace: true });
+                                }}
+                            >
+                                <LogOut size={18} strokeWidth={2.5} />
+                            </button>
+                        </div>
                     </div>
                 </aside>
 
