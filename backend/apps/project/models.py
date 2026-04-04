@@ -42,8 +42,41 @@ class Like(models.Model):
         return f"Likes: #{self.pk} - {self.user.username} - {self.entry.project.name} - {self.liked_at}"
 
 class Streaks(models.Model):
-    entry = models.ForeignKey(Entry, on_delete=models.CASCADE, related_name="streak")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="streak")
+    current_streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
     streak_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Streak: #{self.pk} - {self.entry.project.name} - {self.streak_date}"
+    
+class Achievement(models.Model):
+    CATEGORY_CHOICES = [
+        ('streak', 'Streak'),
+        ('entries', 'Entries'),
+        ('social', 'Social'),
+        ('milestone', 'Milestone'),
+        ('special', 'Special'),
+    ]
+
+    key = models.CharField(max_length=100, unique=True)  # e.g. 'streak_7'
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    icon = models.CharField(max_length=100)  # lucide icon name or emoji
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    points = models.PositiveIntegerField(default=10)
+
+    def __str__(self):
+        return self.name
+
+
+class UserAchievement(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='achievements')
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE, related_name="test")
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'achievement')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.achievement.name}"

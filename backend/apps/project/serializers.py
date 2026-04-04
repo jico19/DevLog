@@ -143,6 +143,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Project
         fields = [
+            'id',
             'user',
             'name',
             'description',
@@ -150,3 +151,27 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'write_only': True}
         }
+
+class AchievementSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Achievement
+        fields = '__all__' # all fields
+
+class UserAchivementsSerializer(serializers.ModelSerializer):
+    
+    achievement_details = AchievementSerializer(
+        source = 'achievement',
+        read_only=True
+    )
+
+
+    class Meta:
+        model = models.UserAchievement
+        fields = [
+            'user',
+            'achievement',
+            'achievement_details',
+            'unlocked_at',
+        ]
+

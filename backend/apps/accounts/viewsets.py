@@ -5,7 +5,7 @@ from django.conf import settings
 from . import models
 from . import serializer
 import requests
-
+from django.db.models import Count, Sum
 
 
 
@@ -17,6 +17,26 @@ class UserViewSets(viewsets.ModelViewSet):
             return serializer.UserListSerializer
         return serializer.UserDetailSerializer
     
+
+    @action(detail=False, methods=['get'])
+    def get_devs(self, request):
+        # We annotate each user with:
+        # 1. Number of projects they've started
+        # 2. Number of entries they've posted
+        # 3. Total points (assuming points are stored on the User or a Profile)
+        
+        qs = models.User.objects.annotate(
+            project_count=Count('project', distinct=True),
+            entry_count=Count('project__entries', distinct=True)
+        ).order_by('-entry_count') # Ranking by most active developers first
+
+        # You'll need a specific serializer for this, 
+        # or use your standard UserSerializer if it handles these fields.
+        serializers =  serializer.UserListSerializer(qs, many=True)
+        
+        return Response(serializers.data, status=status.HTTP_200_OK)
+    
+
     @action(detail=False, methods=['post'])
     def github_login(self, request):
         code = request.data.get('code')

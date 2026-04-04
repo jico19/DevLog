@@ -16,6 +16,7 @@ router.register(f'entry', project.EntryViewSets)
 router.register(f'comment', project.CommentViewSets)
 router.register(f'like', project.LikeViewSets)
 router.register(r'user', accounts.UserViewSets)
+router.register(r'achievements', project.UserAchievementsViewSets)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

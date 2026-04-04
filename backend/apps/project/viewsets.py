@@ -7,7 +7,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from ai.test import Test
 from rest_framework import status
-from django.shortcuts import get_object_or_404
+from django.db.models import Sum, Count
+from django.utils import timezone
+from datetime import timedelta
+
 
 class ProjectViewSets(viewsets.ModelViewSet):
     queryset = models.Project.objects.all()
@@ -36,10 +39,32 @@ class ProjectViewSets(viewsets.ModelViewSet):
             )
         
         return Response(serializer.data , status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'])
+    def own_projects(self, request):
+
+        qs = models.Project.objects.filter(
+            user = request.user
+        )
+        serializer = self.get_serializer(
+            qs, 
+            many = True
+        )
+
+    
+        return Response(
+            serializer.data, 
+            status=status.HTTP_200_OK
+        )
 
 class EntryViewSets(viewsets.ModelViewSet):
     queryset = models.Entry.objects.all()
 
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve', 'get_trending_entries']:
+            return serializers.EntryListSerializer
+
+        return serializers.EntrytDetailSerializer
 
     def list(self, request, *args, **kwargs):
         is_self = bool(request.GET.get('self'))
@@ -61,12 +86,6 @@ class EntryViewSets(viewsets.ModelViewSet):
         
         return Response(serializer.data , status=status.HTTP_200_OK)
 
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return serializers.EntryListSerializer
-        return serializers.EntrytDetailSerializer
-    
     def destroy(self, request, *args, **kwargs):        
         instance = self.get_object()
 
@@ -94,6 +113,29 @@ class EntryViewSets(viewsets.ModelViewSet):
         return Response({
             "msg": "ok!!"
         }, status=status.HTTP_200_OK)
+    
+    # custom actions
+    @action(detail=False, methods=['get'])
+    def get_trending_entries(self, request):
+        # 1. Define 'Trending' (e.g., most liked in the last 7 days)
+        time_threshold = timezone.now() - timedelta(days=7)
+
+        qs = self.get_queryset().annotate(
+            like_count=Count('likes')
+        ).filter(
+            created_at__gte=time_threshold # Only recent-ish posts
+        ).order_by('-like_count', '-created_at')[:10]  # Top 10
+
+        # Fallback: if there are no likes in the last 7 days, 
+        # just show the most liked of all time
+        if not qs.exists():
+            qs = self.get_queryset().annotate(
+                like_count=Count('likes')
+            ).order_by('-like_count')[:10]
+
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class CommentViewSets(viewsets.ModelViewSet):
     queryset = models.Comment.objects.all()
@@ -158,3 +200,39 @@ class LikeViewSets(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"msg": "liked", "liked": True}, status=status.HTTP_200_OK)
+
+
+class UserAchievementsViewSets(viewsets.ModelViewSet):
+    queryset = models.UserAchievement.objects.all()
+    serializer_class = serializers.UserAchivementsSerializer
+
+    @action(detail=False, methods=['get'])
+    def my_achivements(self, request):
+
+        unlocked = models.UserAchievement.objects.filter(
+            user=request.user
+        ).select_related('achievement').order_by('-unlocked_at')
+
+        total_points = unlocked.aggregate(
+            total=Sum('achievement__points')
+        )['total'] or 0
+
+        streak = models.Streaks.objects.filter(user=request.user).first()
+
+        return Response({
+            'total_points': total_points,
+            'current_streak': streak.current_streak if streak else 0,
+            'longest_streak': streak.longest_streak if streak else 0,
+            'achievements': [
+                {
+                    'key': ua.achievement.key,
+                    'name': ua.achievement.name,
+                    'description': ua.achievement.description,
+                    'icon': ua.achievement.icon,
+                    'category': ua.achievement.category,
+                    'points': ua.achievement.points,
+                    'unlocked_at': ua.unlocked_at,
+                }
+                for ua in unlocked
+            ]
+        })

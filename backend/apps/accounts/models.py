@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    followers = models.PositiveSmallIntegerField(default=0)
+    total_points = models.PositiveSmallIntegerField(default=0)
     tag_name = models.CharField(max_length=50,blank=True, default="", unique=True)
 
 

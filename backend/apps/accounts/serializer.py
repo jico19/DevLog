@@ -25,7 +25,7 @@ class UserListSerializer(serializers.ModelSerializer):
             'id',
             'username',
             'tag_name',
-            'followers',
+            'total_points',
         ]
 
 
