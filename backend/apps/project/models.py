@@ -46,6 +46,7 @@ class Streaks(models.Model):
     current_streak = models.PositiveIntegerField(default=0)
     longest_streak = models.PositiveIntegerField(default=0)
     streak_date = models.DateTimeField(auto_now_add=True)
+    last_entry_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return f"Streak: #{self.pk} - {self.entry.project.name} - {self.streak_date}"

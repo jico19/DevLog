@@ -13,7 +13,7 @@ class UserViewSets(viewsets.ModelViewSet):
     queryset = models.User.objects.all()
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             return serializer.UserListSerializer
         return serializer.UserDetailSerializer
     

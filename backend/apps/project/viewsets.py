@@ -14,18 +14,18 @@ from datetime import timedelta
 
 class ProjectViewSets(viewsets.ModelViewSet):
     queryset = models.Project.objects.all()
-    
+    permission_classes = [IsAuthenticated]
     def get_serializer_class(self):
         if self.action == 'list':
             return serializers.ProjectListSerializer
         return serializers.ProjectDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        is_self = bool(request.GET.get('self'))
+        user_id = request.GET.get('id', None)
 
-        if is_self:
+        if user_id:
             qs = models.Project.objects.filter(
-                user = request.user
+                user_id = int(user_id)
             )
             serializer = self.get_serializer(
                 qs, 
@@ -40,6 +40,10 @@ class ProjectViewSets(viewsets.ModelViewSet):
         
         return Response(serializer.data , status=status.HTTP_200_OK)
     
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
     @action(detail=False, methods=['get'])
     def own_projects(self, request):
 
@@ -59,6 +63,7 @@ class ProjectViewSets(viewsets.ModelViewSet):
 
 class EntryViewSets(viewsets.ModelViewSet):
     queryset = models.Entry.objects.all()
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve', 'get_trending_entries']:
@@ -67,11 +72,11 @@ class EntryViewSets(viewsets.ModelViewSet):
         return serializers.EntrytDetailSerializer
 
     def list(self, request, *args, **kwargs):
-        is_self = bool(request.GET.get('self'))
+        user_id = request.GET.get('id', None)
 
-        if is_self:
+        if user_id:
             qs = models.Entry.objects.filter(
-                project__user = request.user
+                project__user_id = int(user_id)
             )
             serializer = self.get_serializer(
                 qs, 
@@ -136,9 +141,9 @@ class EntryViewSets(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 class CommentViewSets(viewsets.ModelViewSet):
     queryset = models.Comment.objects.all()
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -177,6 +182,7 @@ class CommentViewSets(viewsets.ModelViewSet):
     
 class LikeViewSets(viewsets.ModelViewSet):
     queryset = models.Like.objects.all()
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self, *args, **kwargs):
         if self.action == 'list':
@@ -205,19 +211,21 @@ class LikeViewSets(viewsets.ModelViewSet):
 class UserAchievementsViewSets(viewsets.ModelViewSet):
     queryset = models.UserAchievement.objects.all()
     serializer_class = serializers.UserAchivementsSerializer
+    permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['get'])
-    def my_achivements(self, request):
+
+    @action(detail=True, methods=['get'])
+    def my_achivements(self, request, pk=None):
 
         unlocked = models.UserAchievement.objects.filter(
-            user=request.user
+            user=pk
         ).select_related('achievement').order_by('-unlocked_at')
 
         total_points = unlocked.aggregate(
             total=Sum('achievement__points')
         )['total'] or 0
 
-        streak = models.Streaks.objects.filter(user=request.user).first()
+        streak = models.Streaks.objects.filter(user=pk).first()
 
         return Response({
             'total_points': total_points,

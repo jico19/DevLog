@@ -144,7 +144,6 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         model = models.Project
         fields = [
             'id',
-            'user',
             'name',
             'description',
         ]

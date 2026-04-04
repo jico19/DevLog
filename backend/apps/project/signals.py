@@ -1,51 +1,51 @@
-# signals.py
+from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import timezone
+
+# (Import your models and achievement functions here)
 from datetime import timedelta
-from .models import Entry, Streaks
+from .models import Streaks, Entry
 from .achievements import check_streak_achievements, check_entry_achievements, check_milestone_achievements
 
-
-@receiver(post_save, sender=Entry)
-def update_streak(sender, instance, created, **kwargs):
-    if not created:
-        return
-
-    user = instance.project.user
+def update_streak(user):
     today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
 
-    streak, _ = Streaks.objects.get_or_create(user=user)
+    # Get or create the streak record for this user
+    streak, created = Streaks.objects.get_or_create(user=user)
 
-    # already posted today, do nothing
+    # SCENARIO 1: They already posted today. Do nothing.
     if streak.last_entry_date == today:
         return
 
-    # posted yesterday, continue streak
-    if streak.last_entry_date == today - timedelta(days=1):
+    # SCENARIO 2: They posted yesterday. Maintain and increase the streak!
+    elif streak.last_entry_date == yesterday:
         streak.current_streak += 1
+
+    # SCENARIO 3: First time posting, or they missed a day. Reset to 1.
     else:
-        # missed a day or first ever entry, reset
         streak.current_streak = 1
 
-    # update longest streak if beaten
+    # Update longest streak if they beat their high score
     if streak.current_streak > streak.longest_streak:
         streak.longest_streak = streak.current_streak
 
+    # Save today as the last time they posted
     streak.last_entry_date = today
     streak.save()
 
-    # check achievements after every streak update
+    # Trigger achievements
     check_streak_achievements(user, streak.current_streak)
 
 
 @receiver(post_save, sender=Entry)
 def on_entry_created(sender, instance, created, **kwargs):
     if not created:
-        return
+        return # Only run this when a NEW entry is created, not edited.
 
     user = instance.project.user
 
+    # Call our clean, modular functions
     update_streak(user)
     check_entry_achievements(user)
     check_milestone_achievements(user, instance)
