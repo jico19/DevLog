@@ -1,9 +1,13 @@
 from rest_framework import serializers
 from . import models
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from apps.project.serializers import ProjectListSerializer, EntryListSerializer
+from django.db.models import Count
 
 class UserDetailSerializer(serializers.ModelSerializer):
+
+
+
     class Meta:
         model = models.User
         fields = [
@@ -19,6 +23,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return data
 
 class UserListSerializer(serializers.ModelSerializer):
+
+    project_count = serializers.SerializerMethodField()
+
     class Meta:
         model = models.User
         fields = [
@@ -26,7 +33,14 @@ class UserListSerializer(serializers.ModelSerializer):
             'username',
             'tag_name',
             'total_points',
+            'project_count',
         ]
+    
+
+    def get_project_count(self, obj):
+        return obj.project.count()
+    
+
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

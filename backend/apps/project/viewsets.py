@@ -5,12 +5,11 @@ from . import models
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from ai.test import Test
 from rest_framework import status
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
-
+from ai_procressing.AI import entry_assist
 
 class ProjectViewSets(viewsets.ModelViewSet):
     queryset = models.Project.objects.all()
@@ -140,6 +139,13 @@ class EntryViewSets(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def ai_assist(self, request):
+        data = entry_assist(request.data)
+        return Response(
+            data, status=status.HTTP_200_OK
+        )
 
 class CommentViewSets(viewsets.ModelViewSet):
     queryset = models.Comment.objects.all()
